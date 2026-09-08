@@ -1,5 +1,8 @@
 import * as games from '../../handlers/games/handler.js';
 
+/**
+ * @param {import('fastify').FastifyInstance} fastify
+ * */
 export default async function(fastify) {
     fastify.post(
         '/start',
@@ -34,7 +37,7 @@ export default async function(fastify) {
         async (request, reply) => {
             const { statusCode, ...data } = await games.startGame(request);
             if (statusCode !== 200) {
-                reply.statusCode(statusCode);
+                await reply.status(statusCode);
             }
 
             return reply.send(data);
@@ -64,7 +67,7 @@ export default async function(fastify) {
         async (request, reply) => {
             const { statusCode, ...data } = await games.endGame();
             if (statusCode !== 200) {
-                reply.statusCode(statusCode);
+                await reply.status(statusCode);
             }
 
             return reply.send(data);

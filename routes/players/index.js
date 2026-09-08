@@ -1,5 +1,8 @@
 import * as players from '../../handlers/players/handler.js';
 
+/**
+ * @param {import('fastify').FastifyInstance} fastify
+ * */
 export default async function(fastify) {
     fastify.post(
         '/create',
@@ -39,7 +42,7 @@ export default async function(fastify) {
         async (request, reply) => {
             const { statusCode, ...data } = await players.createPlayer(request);
             if (statusCode !== 200) {
-                reply.status(statusCode);
+                await reply.status(statusCode);
                 return reply.send(data);
             }
 
@@ -80,7 +83,7 @@ export default async function(fastify) {
         async (request, reply) => {
             const { statusCode, ...data } = await players.getPlayers();
             if (statusCode !== 200) {
-                reply.status(statusCode);
+                await reply.status(statusCode);
             }
 
             return reply.send(data);
@@ -110,7 +113,7 @@ export default async function(fastify) {
         async (request, reply) => {
             const { statusCode, ...data } = await players.removePlayer(request)
             if (statusCode !== 200) {
-                reply.status(statusCode);
+                await reply.status(statusCode);
                 return reply.send(data);
             }
 
