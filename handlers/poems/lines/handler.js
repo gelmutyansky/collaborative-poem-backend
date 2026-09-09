@@ -83,7 +83,8 @@ async function unsubmitPoemLine({ cookies }) {
                                      FROM games
                                      WHERE poem_lines."playerId" = $1
                                        AND poem_lines.position = games."poemLinePosition"
-                                       AND poem_lines."poemLine" IS NULL`;
+                                       AND poem_lines."poemLine" IS NULL
+                                       AND games."isFinished" IS FALSE`;
         const paramsUpdatePoemLine = [ playerId ];
         const resUpdatePoemLine = await db.query(queryUpdatePoemLine, paramsUpdatePoemLine);
 
