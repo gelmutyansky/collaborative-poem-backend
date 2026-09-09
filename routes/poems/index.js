@@ -8,16 +8,18 @@ export default async function(fastify) {
         '/continue',
         {
             schema: {
-                200: {
-                    type:       'object',
-                    properties: {
-                        message: { type: 'string' },
+                response: {
+                    200: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
                     },
-                },
-                400: {
-                    type:       'object',
-                    properties: {
-                        message: { type: 'string' },
+                    400: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
                     },
                 },
             },
