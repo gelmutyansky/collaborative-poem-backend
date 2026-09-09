@@ -80,4 +80,40 @@ export default async function(fastify) {
             return reply.send(data);
         },
     );
+
+    fastify.get(
+        '/previous',
+        {
+            schema: {
+                response: {
+                    200: {
+                        type:       'object',
+                        properties: {
+                            message: {
+                                type:       'object',
+                                properties: {
+                                    poemLine: { type: 'string' },
+                                    fontName: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                    400: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+        async (request, reply) => {
+            const { statusCode, ...data } = await poemLines.getPreviousPoemLine(request);
+            if (statusCode !== 200) {
+                await reply.status(statusCode);
+            }
+
+            return reply.send(data);
+        },
+    );
 }
