@@ -87,7 +87,80 @@ async function endGame() {
     return data;
 }
 
+/**
+ * Получение статуса игры
+ * @param { Object } cookies
+ * @param { string? } cookies.playerId
+ * @returns { Promise<{ message: string | { game: { gameName: string, isFinished: boolean, poemLinePosition: number, hasPoems: boolean }, players: { playerId: number, playerName: string, playerPoemLineSubmitted: boolean }[] }, statusCode: number }>}
+ * */
+async function getGameStatus({ cookies }) {
+    let data = {
+        message:    'error',
+        statusCode: 400,
+    };
+
+    const funcName = getGameStatus.name;
+
+    try {
+        const {
+            playerId,
+        } = cookies;
+
+        const queryGame = `SELECT g."gameName"               AS "gameName",
+                                  g."isFinished"             AS "isFinished",
+                                  g."poemLinePosition"       AS "poemLinePosition",
+                                  po."poemId" IS NOT NULL    AS "hasPoems",
+                                  pl."playerId"              AS "playerId",
+                                  pl."playerName"            AS "playerName",
+                                  pol."poemLine" IS NOT NULL AS "playerPoemLineSubmitted"
+                           FROM games g
+                                    LEFT JOIN players pl ON g."gameId" = pl."gameId"
+                                    LEFT JOIN poems po ON g."gameId" = po."gameId"
+                               AND po."playerIdCreator" = pl."playerId" -- чтобы не дублировались
+                                    LEFT JOIN poem_lines pol
+                                              ON po."poemId" = pol."poemId" AND pl."playerId" = pol."playerId"
+                           WHERE g."isActive" IS TRUE`;
+        const resGame = await db.query(queryGame);
+
+        if (resGame.rows.length <= 0) {
+            data.message = 'game not active';
+            return data;
+        }
+
+        const {
+            gameName,
+            isFinished,
+            poemLinePosition,
+            hasPoems,
+        } = resGame.rows[0];
+
+        let players = resGame.rows;
+        if (playerId) {
+            players = [ players.find(player => player.playerId === +playerId) ];
+        }
+
+        data = {
+            message:    {
+                game:    {
+                    gameName,
+                    isFinished,
+                    poemLinePosition,
+                    hasPoems,
+                },
+                players: players,
+            },
+            statusCode: 200,
+        };
+    }
+    catch (e) {
+        data = errorHandler(e, funcName);
+    }
+
+    return data;
+}
+
 export {
     startGame,
     endGame,
+    getGameStatus,
 };
