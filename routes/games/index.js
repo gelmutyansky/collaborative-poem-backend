@@ -127,4 +127,34 @@ export default async function(fastify) {
             return reply.send(data);
         },
     );
+
+    fastify.post(
+        '/finish',
+        {
+            schema: {
+                response: {
+                    200: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
+                    },
+                    400: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+        async (request, reply) => {
+            const { statusCode, ...data } = await games.finishGame();
+            if (statusCode !== 200) {
+                await reply.status(statusCode);
+            }
+
+            return reply.send(data);
+        },
+    );
 }

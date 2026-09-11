@@ -71,7 +71,7 @@ async function endGame() {
         const resUpdateGame = await db.query(queryUpdateGame);
 
         if (resUpdateGame.rowCount <= 0) {
-            console.error(`${ funcName }: Не получилось завершить игру`);
+            console.error(`${ funcName }: Не получилось закончить игру`);
             return data;
         }
 
@@ -159,8 +159,65 @@ async function getGameStatus({ cookies }) {
     return data;
 }
 
+/**
+ * Окончание игры
+ * @returns { Promise<{ message: string, statusCode: number }>}
+ * */
+async function finishGame() {
+    let data = {
+        message:    'error',
+        statusCode: 400,
+    };
+
+    const funcName = finishGame.name;
+
+    try {
+        const queryCheckPoems = `SELECT BOOL_AND(pl."poemLine" IS NOT NULL) AS "arePoemsFinished"
+                                 FROM poem_lines pl
+                                          INNER JOIN poems p ON pl."poemId" = p."poemId"
+                                          INNER JOIN games g ON p."gameId" = g."gameId"
+                                 WHERE g."isActive" IS TRUE`;
+        const resCheckPoems = await db.query(queryCheckPoems);
+
+        if (resCheckPoems.rows.length <= 0) {
+            console.error(`${ funcName }: Не получен статус поэм`);
+            return data;
+        }
+
+        const { arePoemsFinished } = resCheckPoems.rows[0];
+
+        if (!arePoemsFinished) {
+            console.error(`${ funcName }: Поэмы не завершены`);
+            data.message = 'poems not finished';
+            return data;
+        }
+
+        const queryUpdateGame = `UPDATE games
+                                 SET "isFinished" = TRUE,
+                                     "updateDate" = NOW()
+                                 WHERE "isActive" IS TRUE`;
+        const resUpdateGame = await db.query(queryUpdateGame);
+
+        if (resUpdateGame.rowCount <= 0) {
+            console.error(`${ funcName }: Не получилось завершить игру`);
+            return data;
+        }
+
+        data = {
+            message:    'success',
+            statusCode: 200,
+        };
+    }
+    catch (e) {
+        data = errorHandler(e, funcName);
+    }
+
+    return data;
+}
+
 export {
     startGame,
     endGame,
     getGameStatus,
+    finishGame,
 };
