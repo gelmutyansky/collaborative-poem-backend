@@ -154,8 +154,59 @@ async function getPreviousPoemLine({ cookies }) {
     return data;
 }
 
+/**
+ * Получение цельной поэмы
+ * @param { Object } cookies
+ * @param { string } cookies.playerId
+ * @returns { Promise<{ message: string | { poemLine: string, position: number, fontName: string, playerName: string }[], statusCode: number }>}
+ * */
+async function getAllPoemLines({ cookies }) {
+    let data = {
+        message:    'error',
+        statusCode: 400,
+    };
+
+    const funcName = getAllPoemLines.name;
+
+    try {
+        const {
+            playerId,
+        } = cookies;
+
+        const queryLines = `SELECT po_l."poemLine" AS "poemLine",
+                                   po_l."position" AS "position",
+                                   po_l."fontName" AS "fontName",
+                                   pl."playerName" AS "playerName"
+                            FROM games g
+                                     INNER JOIN poems po ON g."gameId" = po."poemId"
+                                     INNER JOIN poem_lines po_l on po."poemId" = po_l."poemId"
+                                     INNER JOIN players pl ON po_l."playerId" = pl."playerId"
+                            WHERE g."isActive" IS TRUE
+                              AND po."isReadable" IS TRUE
+                              AND po."playerIdCreator" = $1
+                            ORDER BY po_l.position`;
+        const resLines = await db.query(queryLines, [ playerId ]);
+
+        if (resLines.rows.length <= 0) {
+            console.error(`${ funcName } Не получены строки поэмы (playerId: ${ playerId })`);
+            return data;
+        }
+
+        data = {
+            message:    resLines.rows,
+            statusCode: 200,
+        };
+    }
+    catch (e) {
+        data = errorHandler(e, funcName);
+    }
+
+    return data;
+}
+
 export {
     submitPoemLine,
     unsubmitPoemLine,
     getPreviousPoemLine,
+    getAllPoemLines,
 };

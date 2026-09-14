@@ -74,7 +74,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
+                    200:     {
                         type:       'object',
                         properties: {
                             message: {
@@ -97,6 +97,47 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await poemLines.getPreviousPoemLine(request);
+            if (statusCode !== 200) {
+                await reply.status(statusCode);
+            }
+
+            return reply.send(data);
+        },
+    );
+
+    fastify.get(
+        '/all',
+        {
+            schema: {
+                response: {
+                    200:     {
+                        type:       'object',
+                        properties: {
+                            message: {
+                                type:  'array',
+                                items: {
+                                    type:       'object',
+                                    properties: {
+                                        poemLine:   { type: 'string' },
+                                        position:   { type: 'number' },
+                                        fontName:   { type: 'string' },
+                                        playerName: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    default: {
+                        type:       'object',
+                        properties: {
+                            message: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+        async (request, reply) => {
+            const { statusCode, ...data } = await poemLines.getAllPoemLines(request);
             if (statusCode !== 200) {
                 await reply.status(statusCode);
             }
