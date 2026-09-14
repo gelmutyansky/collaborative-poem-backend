@@ -19,7 +19,7 @@ export default async function(fastify) {
                     required:   [ 'playerName' ],
                 },
                 response: {
-                    200: {
+                    200:     {
                         type:       'object',
                         properties: {
                             message: {
@@ -30,7 +30,7 @@ export default async function(fastify) {
                             },
                         },
                     },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -56,7 +56,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
+                    200:     {
                         type:       'object',
                         properties: {
                             message: {
@@ -71,7 +71,7 @@ export default async function(fastify) {
                             },
                         },
                     },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -95,13 +95,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
-                        type:       'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
-                    },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -111,7 +105,7 @@ export default async function(fastify) {
             },
         },
         async (request, reply) => {
-            const { statusCode, ...data } = await players.removePlayer(request)
+            const { statusCode, ...data } = await players.removePlayer(request);
             if (statusCode !== 200) {
                 await reply.status(statusCode);
                 return reply.send(data);
@@ -119,6 +113,6 @@ export default async function(fastify) {
 
             reply.clearCookie('playerId');
             return reply.send(data);
-        }
-    )
+        },
+    );
 }

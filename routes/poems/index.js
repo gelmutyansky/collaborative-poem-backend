@@ -9,13 +9,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
-                        type:       'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
-                    },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },

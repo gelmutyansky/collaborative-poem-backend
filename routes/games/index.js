@@ -19,13 +19,7 @@ export default async function(fastify) {
                     required:   [ 'gameName' ],
                 },
                 response: {
-                    200: {
-                        type:       'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
-                    },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -49,13 +43,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
-                        type:       'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
-                    },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -79,7 +67,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
+                    200:     {
                         type:       'object',
                         properties: {
                             message: {
@@ -109,7 +97,7 @@ export default async function(fastify) {
                             },
                         },
                     },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
@@ -133,13 +121,7 @@ export default async function(fastify) {
         {
             schema: {
                 response: {
-                    200: {
-                        type:       'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
-                    },
-                    400: {
+                    default: {
                         type:       'object',
                         properties: {
                             message: { type: 'string' },
