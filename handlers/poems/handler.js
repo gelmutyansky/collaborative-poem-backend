@@ -204,7 +204,102 @@ async function continuePoem() {
     return data;
 }
 
+/**
+ * Отметить поэму как доступную/недоступную для чтения
+ * @param { Object } body
+ * @param { number } body.playerId
+ * @param { boolean } body.isReadable
+ * @returns { Promise<{ message: string, statusCode: number }> }
+ * */
+async function markReadablePoemByPlayer({ body }) {
+    let data = {
+        message:    'error',
+        statusCode: 400,
+    };
+
+    const funcName = markReadablePoemByPlayer.name;
+
+    try {
+        const {
+            playerId,
+            isReadable,
+        } = body;
+
+        const queryUpdate = `UPDATE poems
+                             SET "isReadable" = $2,
+                                 "updateDate" = NOW()
+                             FROM games g
+                             WHERE g."isActive" IS TRUE
+                               AND g."isFinished" IS TRUE
+                               AND poems."gameId" = g."gameId"
+                               AND poems."playerIdCreator" = $1`;
+        const resUpdate = await db.query(queryUpdate, [ playerId, isReadable ]);
+
+        if (resUpdate.rowCount <= 0) {
+            console.error(`${ funcName }: Не получилось обновить поэму как доступную для чтения (playerId: ${ playerId }, isReadable: ${ isReadable })`);
+            return data;
+        }
+
+        data = {
+            message:    'success',
+            statusCode: 200,
+        };
+    }
+    catch (e) {
+        data = errorHandler(e, funcName);
+    }
+
+    return data;
+}
+
+/**
+ * Отметить все поэмы как доступные/недоступные для чтения
+ * @param { Object } body
+ * @param { boolean } body.isReadable
+ * @returns { Promise<{ message: string, statusCode: number }> }
+ * */
+async function markReadablePoemAllPlayers({ body }) {
+    let data = {
+        message:    'error',
+        statusCode: 400,
+    };
+
+    const funcName = markReadablePoemAllPlayers.name;
+
+    try {
+        const {
+            isReadable,
+        } = body;
+
+        const queryUpdate = `UPDATE poems
+                             SET "isReadable" = $1,
+                                 "updateDate" = NOW()
+                             FROM games g
+                             WHERE g."isActive" IS TRUE
+                               AND g."isFinished" IS TRUE
+                               AND poems."gameId" = g."gameId"`;
+        const resUpdate = await db.query(queryUpdate, [ isReadable ]);
+
+        if (resUpdate.rowCount <= 0) {
+            console.error(`${ funcName }: Не получилось обновить поэмы как доступные для чтения (isReadable: ${ isReadable })`);
+            return data;
+        }
+
+        data = {
+            message:    'success',
+            statusCode: 200,
+        };
+    }
+    catch (e) {
+        data = errorHandler(e, funcName);
+    }
+
+    return data;
+}
+
 export {
     startPoem,
     continuePoem,
+    markReadablePoemByPlayer,
+    markReadablePoemAllPlayers,
 };
