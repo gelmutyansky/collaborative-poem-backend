@@ -13,6 +13,7 @@ export const up = (pgm) => {
         gameId:           'id',
         gameName:         {
             type:    'text',
+            notNull: true,
             comment: 'Название игры',
         },
         isActive:         {

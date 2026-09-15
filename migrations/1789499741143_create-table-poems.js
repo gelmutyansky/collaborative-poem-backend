@@ -14,13 +14,11 @@ export const up = (pgm) => {
         playerIdCreator: {
             type:       'integer',
             references: 'players',
-            // referencesConstraintName
             comment: 'Игрок-создатель поэмы (первая строка за ним)',
         },
         gameId:          {
             type:       'integer',
             references: 'games',
-            // referencesConstraintName
             comment: 'К какой игре относится поэма',
         },
         createDate:      {

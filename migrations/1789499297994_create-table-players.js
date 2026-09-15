@@ -14,11 +14,11 @@ export const up = (pgm) => {
         gameId:     {
             type:       'integer',
             references: 'games',
-            // referencesConstraintName
-            comment: 'К какой игре относятся игроки',
+            comment:    'К какой игре относятся игроки',
         },
         playerName: {
             type:    'text',
+            notNull: true,
             comment: 'Имя игрока',
         },
         createDate: {

@@ -14,33 +14,33 @@ export const up = (pgm) => {
         poemId:     {
             type:       'integer',
             references: 'poems',
-            // referencesConstraintName
-            comment: 'К какой поэме относится строка',
+            comment:    'К какой поэме относится строка',
         },
         playerId:   {
             type:       'integer',
             references: 'players',
-            // referencesConstraintName
-            comment: 'Автор строки',
+            comment:    'Автор строки',
         },
         poemLine:   {
             type:    'text',
+            notNull: true,
             comment: 'Строка',
         },
         position:   {
             type:    'integer',
+            notNull: true,
             comment: 'Позиция в поэме (от 1)',
         },
         fontName:   {
             type:    'text',
             comment: 'Название шрифта',
         },
-        createDate:      {
+        createDate: {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
             comment: 'Дата создания записи',
         },
-        updateDate:      {
+        updateDate: {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
             comment: 'Дата обновления записи',
