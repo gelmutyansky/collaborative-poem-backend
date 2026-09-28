@@ -20,11 +20,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await poems.continuePoem();
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 
@@ -55,11 +53,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await poems.markReadablePoemByPlayer(request);
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 
@@ -88,11 +84,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await poems.markReadablePoemAllPlayers(request);
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 

@@ -30,11 +30,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await games.startGame(request);
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 
@@ -54,11 +52,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await games.endGame();
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 
@@ -108,11 +104,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await games.getGameStatus(request);
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 
@@ -132,11 +126,9 @@ export default async function(fastify) {
         },
         async (request, reply) => {
             const { statusCode, ...data } = await games.finishGame();
-            if (statusCode !== 200) {
-                await reply.status(statusCode);
-            }
-
-            return reply.send(data);
+            return reply
+                .status(statusCode)
+                .send(data);
         },
     );
 }
