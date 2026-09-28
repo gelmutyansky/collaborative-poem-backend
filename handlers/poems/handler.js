@@ -10,7 +10,7 @@ import _ from 'underscore';
 async function startPoem() {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = startPoem.name;
@@ -135,7 +135,7 @@ async function startPoem() {
 async function continuePoem() {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = continuePoem.name;
@@ -214,7 +214,7 @@ async function continuePoem() {
 async function markReadablePoemByPlayer({ body }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = markReadablePoemByPlayer.name;
@@ -261,7 +261,7 @@ async function markReadablePoemByPlayer({ body }) {
 async function markReadablePoemAllPlayers({ body }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = markReadablePoemAllPlayers.name;

@@ -13,7 +13,7 @@ import { errorHandler } from '../../../helpers/functions.js';
 async function submitPoemLine({ body, cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = submitPoemLine.name;
@@ -66,7 +66,7 @@ async function submitPoemLine({ body, cookies }) {
 async function unsubmitPoemLine({ cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = unsubmitPoemLine.name;
@@ -115,7 +115,7 @@ async function unsubmitPoemLine({ cookies }) {
 async function getPreviousPoemLine({ cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = getPreviousPoemLine.name;
@@ -163,7 +163,7 @@ async function getPreviousPoemLine({ cookies }) {
 async function getAllPoemLines({ cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = getAllPoemLines.name;

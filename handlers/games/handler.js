@@ -10,7 +10,7 @@ import { errorHandler } from '../../helpers/functions.js';
 async function startGame({ body }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = startGame.name;
@@ -22,7 +22,10 @@ async function startGame({ body }) {
         const resCheckExistingGame = await db.query(queryCheckExistingGame);
 
         if (resCheckExistingGame.rows.length > 0) {
-            data.message = 'game is active';
+            data = {
+                message:    'game active',
+                statusCode: 503,
+            };
             return data;
         }
 
@@ -58,7 +61,7 @@ async function startGame({ body }) {
 async function endGame() {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = endGame.name;
@@ -96,7 +99,7 @@ async function endGame() {
 async function getGameStatus({ cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = getGameStatus.name;
@@ -123,7 +126,10 @@ async function getGameStatus({ cookies }) {
         const resGame = await db.query(queryGame);
 
         if (resGame.rows.length <= 0) {
-            data.message = 'game not active';
+            data = {
+                message:    'game not active',
+                statusCode: 503,
+            };
             return data;
         }
 
@@ -166,7 +172,7 @@ async function getGameStatus({ cookies }) {
 async function finishGame() {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = finishGame.name;
@@ -188,7 +194,10 @@ async function finishGame() {
 
         if (!arePoemsFinished) {
             console.error(`${ funcName }: Поэмы не завершены`);
-            data.message = 'poems not finished';
+            data = {
+                message:    'poems not finished',
+                statusCode: 503,
+            };
             return data;
         }
 

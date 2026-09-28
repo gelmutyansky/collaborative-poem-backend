@@ -10,7 +10,7 @@ import { errorHandler } from '../../helpers/functions.js';
 async function createPlayer({ body }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
 
     const funcName = createPlayer.name;
@@ -55,7 +55,10 @@ async function createPlayer({ body }) {
  * @returns { Promise<{ message: string | { playerId: number, playerName: string }[], statusCode: number }>}
  * */
 async function getPlayers() {
-    let data;
+    let data = {
+        message: 'error',
+        statusCode: 500,
+    };
     const funcName = getPlayers.name;
 
     try {
@@ -87,7 +90,7 @@ async function getPlayers() {
 async function removePlayer({ cookies }) {
     let data = {
         message:    'error',
-        statusCode: 400,
+        statusCode: 500,
     };
     const funcName = removePlayer.name;
 
