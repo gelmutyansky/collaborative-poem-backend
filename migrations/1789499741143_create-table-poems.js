@@ -14,32 +14,30 @@ export const up = (pgm) => {
         playerIdCreator: {
             type:       'integer',
             references: 'players',
-            comment: 'Игрок-создатель поэмы (первая строка за ним)',
+            comment:    'Игрок-создатель поэмы (первая строка за ним)',
         },
         gameId:          {
             type:       'integer',
             references: 'games',
-            comment: 'К какой игре относится поэма',
+            comment:    'К какой игре относится поэма',
         },
         createDate:      {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата создания записи',
         },
         updateDate:      {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата обновления записи',
         },
         isReadable:      {
             type:    'boolean',
             default: false,
+            notNull: true,
             comment: 'Доступна ли поэма для чтения',
-        },
-        pdfFontSize:     {
-            type:    'integer',
-            default: 0,
-            comment: 'Размер шрифта строк поэмы в PDF-файле',
         },
     }, {
         ifNotExists: true,

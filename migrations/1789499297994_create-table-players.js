@@ -24,11 +24,13 @@ export const up = (pgm) => {
         createDate: {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата создания записи',
         },
         updateDate: {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата обновления записи',
         },
     }, {

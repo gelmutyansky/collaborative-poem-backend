@@ -19,26 +19,31 @@ export const up = (pgm) => {
         isActive:         {
             type:    'boolean',
             default: false,
+            notNull: true,
             comment: 'Активна ли игра',
         },
         createDate:       {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата создания записи',
         },
         updateDate:       {
             type:    'timestamp with time zone',
             default: pgm.func('now()'),
+            notNull: true,
             comment: 'Дата обновления записи',
         },
         poemLinePosition: {
             type:    'integer',
             default: 0,
+            notNull: true,
             comment: 'На какой строке текущая игра (в начале 0, после создания поэм 1 и далее)',
         },
         isFinished:       {
             type:    'boolean',
             default: false,
+            notNull: true,
             comment: 'Завершена ли игра. На этом этапе можно читать поэмы',
         },
     }, {
