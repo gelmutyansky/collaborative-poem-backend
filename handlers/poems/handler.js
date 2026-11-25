@@ -21,12 +21,12 @@ async function startPoem() {
         await client.query('BEGIN');
         hasTransaction = true;
 
-        const queryInsertPoems = `INSERT INTO poems ("playerIdCreator", "gameId")
-                                  SELECT p."playerId", g."gameId"
-                                  FROM players p
-                                           INNER JOIN games g ON p."gameId" = g."gameId"
-                                  WHERE g."isActive" IS TRUE
-                                  RETURNING poems."poemId", poems."playerIdCreator"`;
+        const queryInsertPoems = `INSERT INTO poems ("gamerIdCreator", "gameId")
+                                  SELECT gamers."gamerId", games."gameId"
+                                  FROM gamers
+                                           INNER JOIN games ON gamers."gameId" = games."gameId"
+                                  WHERE games."isActive" IS TRUE
+                                  RETURNING poems."poemId", poems."gamerIdCreator"`;
         const resInsertPoems = await client.query(queryInsertPoems);
 
         if (resInsertPoems.rowCount <= 0 || resInsertPoems.rows.length <= 0) {
@@ -34,36 +34,35 @@ async function startPoem() {
             return data;
         }
 
-        /** @type {{ poemId: number, playerIdCreator: number, order: []? }[]} */
+        /** @type {{ poemId: number, gamerIdCreator: number, order: []? }[]} */
         const poems = resInsertPoems.rows;
-        const players = poems.map(poem => poem.playerIdCreator);
+        const gamers = poems.map(poem => poem.gamerIdCreator);
 
         for (const [ poemIndex, poem ] of poems.entries()) {
             const {
                 poemId,
-                playerIdCreator,
+                gamerIdCreator,
             } = poem;
 
-            const queryInsertFirstLine = `INSERT INTO poem_lines ("poemId", "playerId", position)
+            const queryInsertFirstLine = `INSERT INTO poem_lines ("poemId", "gamerId", position)
                                           VALUES ($1, $2, 1)`;
-            const paramsInsertFirstLine = [ poemId, playerIdCreator ];
+            const paramsInsertFirstLine = [ poemId, gamerIdCreator ];
             const resInsertFirstLine = await client.query(queryInsertFirstLine);
 
             if (resInsertFirstLine.rowCount <= 0) {
-                const paramsInsertFirstLineStr = JSON.stringify(paramsInsertFirstLine);
-                console.error(`${ funcName }: Линия поэмы другого игрока не добавлена (paramsInsertFirstLine: ${ paramsInsertFirstLineStr })`);
+                console.error(`${ funcName }: Линия поэмы другого игрока не добавлена (paramsInsertFirstLine: ${ JSON.stringify(paramsInsertFirstLine) })`);
                 return data;
             }
 
-            poem.order = [ playerIdCreator ];
+            poem.order = [ gamerIdCreator ];
 
-            let otherPlayers = _.without(players, playerIdCreator);
+            let otherGamers = _.without(gamers, gamerIdCreator);
 
             let position = 1;
-            while (otherPlayers.length > 0) {
+            while (otherGamers.length > 0) {
                 position++;
 
-                let availablePlayers = [ ...otherPlayers ];
+                let availableGamers = [ ...otherGamers ];
 
                 if (poemIndex > 0) {
                     for (const [ poemIndexOther, poemOther ] of poems.entries()) {
@@ -72,26 +71,25 @@ async function startPoem() {
                         }
 
                         const { order } = poemOther;
-                        const playerId = order[position - 1];
-                        availablePlayers = _.without(availablePlayers, playerId);
+                        const gamerId = order[position - 1];
+                        availableGamers = _.without(availableGamers, gamerId);
                     }
                 }
 
-                const playerIdRandom = _.sample(availablePlayers);
+                const gamerIdRandom = _.sample(availableGamers);
 
-                const queryInsertLine = `INSERT INTO poem_lines ("poemId", "playerId", position)
+                const queryInsertLine = `INSERT INTO poem_lines ("poemId", "gamerId", position)
                                          VALUES ($1, $2, $3)`;
-                const paramsInsertLine = [ poemId, playerIdRandom, position ];
+                const paramsInsertLine = [ poemId, gamerIdRandom, position ];
                 const resInsertLine = await client.query(queryInsertLine, paramsInsertLine);
 
                 if (resInsertLine.rowCount <= 0) {
-                    const paramsInsertLineStr = JSON.stringify(paramsInsertLine);
-                    console.error(`${ funcName }: Линия поэмы другого игрока не добавлена (paramsInsertLine: ${ paramsInsertLineStr })`);
+                    console.error(`${ funcName }: Линия поэмы другого игрока не добавлена (paramsInsertLine: ${ JSON.stringify(paramsInsertLine) })`);
                     return data;
                 }
 
-                poem.order.push(playerIdRandom);
-                otherPlayers = _.without(otherPlayers, playerIdRandom);
+                poem.order.push(gamerIdRandom);
+                otherGamers = _.without(otherGamers, gamerIdRandom);
             }
         }
 
@@ -207,21 +205,21 @@ async function continuePoem() {
 /**
  * Отметить поэму как доступную/недоступную для чтения
  * @param { Object } body
- * @param { number } body.playerId
+ * @param { number } body.gamerId
  * @param { boolean } body.isReadable
  * @returns { Promise<{ message: string, statusCode: number }> }
  * */
-async function markReadablePoemByPlayer({ body }) {
+async function markReadablePoemByGamer({ body }) {
     let data = {
         message:    'error',
         statusCode: 500,
     };
 
-    const funcName = markReadablePoemByPlayer.name;
+    const funcName = markReadablePoemByGamer.name;
 
     try {
         const {
-            playerId,
+            gamerId,
             isReadable,
         } = body;
 
@@ -232,11 +230,12 @@ async function markReadablePoemByPlayer({ body }) {
                              WHERE g."isActive" IS TRUE
                                AND g."isFinished" IS TRUE
                                AND poems."gameId" = g."gameId"
-                               AND poems."playerIdCreator" = $1`;
-        const resUpdate = await db.query(queryUpdate, [ playerId, isReadable ]);
+                               AND poems."gamerIdCreator" = $1`;
+        const paramsUpdate = [ gamerId, isReadable ];
+        const resUpdate = await db.query(queryUpdate, paramsUpdate);
 
         if (resUpdate.rowCount <= 0) {
-            console.error(`${ funcName }: Не получилось обновить поэму как доступную для чтения (playerId: ${ playerId }, isReadable: ${ isReadable })`);
+            console.error(`${ funcName }: Не получилось обновить поэму как доступную для чтения (paramsUpdate: ${ JSON.stringify(paramsUpdate) })`);
             return data;
         }
 
@@ -258,13 +257,13 @@ async function markReadablePoemByPlayer({ body }) {
  * @param { boolean } body.isReadable
  * @returns { Promise<{ message: string, statusCode: number }> }
  * */
-async function markReadablePoemAllPlayers({ body }) {
+async function markReadablePoemAllGamers({ body }) {
     let data = {
         message:    'error',
         statusCode: 500,
     };
 
-    const funcName = markReadablePoemAllPlayers.name;
+    const funcName = markReadablePoemAllGamers.name;
 
     try {
         const {
@@ -300,6 +299,6 @@ async function markReadablePoemAllPlayers({ body }) {
 export {
     startPoem,
     continuePoem,
-    markReadablePoemByPlayer,
-    markReadablePoemAllPlayers,
+    markReadablePoemByGamer,
+    markReadablePoemAllGamers,
 };

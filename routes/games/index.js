@@ -69,7 +69,7 @@ export default async function(fastify) {
                             message: {
                                 type:       'object',
                                 properties: {
-                                    game:    {
+                                    game:   {
                                         type:       'object',
                                         properties: {
                                             gameName:         { type: 'string' },
@@ -78,14 +78,14 @@ export default async function(fastify) {
                                             hasPoems:         { type: 'boolean' },
                                         },
                                     },
-                                    players: {
+                                    gamers: {
                                         type:  'array',
                                         items: {
                                             type:       'object',
                                             properties: {
-                                                playerId:                { type: 'number' },
-                                                playerName:              { type: 'string' },
-                                                playerPoemLineSubmitted: { type: 'boolean' },
+                                                gamerId:             { type: 'number' },
+                                                playerName:          { type: 'string' },
+                                                isPoemLineSubmitted: { type: 'boolean' },
                                             },
                                         },
                                     },

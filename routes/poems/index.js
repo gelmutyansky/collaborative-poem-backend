@@ -27,17 +27,17 @@ export default async function(fastify) {
     );
 
     fastify.post(
-        '/readable/player',
+        '/readable/gamer',
         {
             schema: {
                 body:     {
                     type:       'object',
                     properties: {
-                        playerId:   { type: 'number' },
+                        gamerId:   { type: 'number' },
                         isReadable: { type: 'boolean' },
                     },
                     required:   [
-                        'playerId',
+                        'gamerId',
                         'isReadable',
                     ],
                 },
@@ -52,7 +52,7 @@ export default async function(fastify) {
             },
         },
         async (request, reply) => {
-            const { statusCode, ...data } = await poems.markReadablePoemByPlayer(request);
+            const { statusCode, ...data } = await poems.markReadablePoemByGamer(request);
             return reply
                 .status(statusCode)
                 .send(data);
@@ -83,7 +83,7 @@ export default async function(fastify) {
             },
         },
         async (request, reply) => {
-            const { statusCode, ...data } = await poems.markReadablePoemAllPlayers(request);
+            const { statusCode, ...data } = await poems.markReadablePoemAllGamers(request);
             return reply
                 .status(statusCode)
                 .send(data);

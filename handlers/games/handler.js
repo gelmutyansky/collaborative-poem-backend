@@ -93,8 +93,8 @@ async function endGame() {
 /**
  * Получение статуса игры
  * @param { Object } cookies
- * @param { string? } cookies.playerId
- * @returns { Promise<{ message: string | { game: { gameName: string, isFinished: boolean, poemLinePosition: number, hasPoems: boolean }, players: { playerId: number, playerName: string, playerPoemLineSubmitted: boolean }[] }, statusCode: number }>}
+ * @param { string? } cookies.gamerId
+ * @returns { Promise<{ message: string | { game: { gameName: string, isFinished: boolean, poemLinePosition: number, hasPoems: boolean }, gamers: { gamerId: number, playerName: string, isPoemLineSubmitted: boolean }[] }, statusCode: number }>}
  * */
 async function getGameStatus({ cookies }) {
     let data = {
@@ -106,23 +106,25 @@ async function getGameStatus({ cookies }) {
 
     try {
         const {
-            playerId,
+            gamerId,
         } = cookies;
 
-        const queryGame = `SELECT g."gameName"               AS "gameName",
-                                  g."isFinished"             AS "isFinished",
-                                  g."poemLinePosition"       AS "poemLinePosition",
-                                  po."poemId" IS NOT NULL    AS "hasPoems",
-                                  pl."playerId"              AS "playerId",
-                                  pl."playerName"            AS "playerName",
-                                  pol."poemLine" IS NOT NULL AS "playerPoemLineSubmitted"
-                           FROM games g
-                                    LEFT JOIN players pl ON g."gameId" = pl."gameId"
-                                    LEFT JOIN poems po ON g."gameId" = po."gameId"
-                               AND po."playerIdCreator" = pl."playerId" -- чтобы не дублировались
-                                    LEFT JOIN poem_lines pol
-                                              ON po."poemId" = pol."poemId" AND pl."playerId" = pol."playerId"
-                           WHERE g."isActive" IS TRUE`;
+        const queryGame = `SELECT games."gameName"                  AS "gameName",
+                                  games."isFinished"                AS "isFinished",
+                                  games."poemLinePosition"          AS "poemLinePosition",
+                                  poems."poemId" IS NOT NULL        AS "hasPoems",
+                                  gamers."gamerId"                  AS "gamerId",
+                                  players."playerName"              AS "playerName",
+                                  poem_lines."poemLine" IS NOT NULL AS "isPoemLineSubmitted"
+                           FROM games
+                                    LEFT JOIN gamers ON games."gameId" = gamers."gameId"
+                                    LEFT JOIN players ON gamers."playerId" = players."playerId"
+                                    LEFT JOIN poems ON games."gameId" = poems."gameId"
+                               AND poems."gamerIdCreator" = gamers."gamerId" -- чтобы не дублировались
+                                    LEFT JOIN poem_lines
+                                              ON poems."poemId" = poem_lines."poemId" AND
+                                                 gamers."gamerId" = poem_lines."gamerId"
+                           WHERE games."isActive" IS TRUE`;
         const resGame = await db.query(queryGame);
 
         if (resGame.rows.length <= 0) {
@@ -140,9 +142,9 @@ async function getGameStatus({ cookies }) {
             hasPoems,
         } = resGame.rows[0];
 
-        let players = resGame.rows;
-        if (playerId) {
-            players = [ players.find(player => player.playerId === +playerId) ];
+        let gamers = resGame.rows;
+        if (gamerId) {
+            gamers = [ gamers.find(gamer => gamer.gamerId === +gamerId) ];
         }
 
         data = {
@@ -153,7 +155,7 @@ async function getGameStatus({ cookies }) {
                     poemLinePosition,
                     hasPoems,
                 },
-                players: players,
+                gamers: gamers,
             },
             statusCode: 200,
         };
@@ -178,11 +180,11 @@ async function finishGame() {
     const funcName = finishGame.name;
 
     try {
-        const queryCheckPoems = `SELECT BOOL_AND(pl."poemLine" IS NOT NULL) AS "arePoemsFinished"
-                                 FROM poem_lines pl
-                                          INNER JOIN poems p ON pl."poemId" = p."poemId"
-                                          INNER JOIN games g ON p."gameId" = g."gameId"
-                                 WHERE g."isActive" IS TRUE`;
+        const queryCheckPoems = `SELECT BOOL_AND(poem_lines."poemLine" IS NOT NULL) AS "arePoemsFinished"
+                                 FROM poem_lines
+                                          INNER JOIN poems ON poem_lines."poemId" = poems."poemId"
+                                          INNER JOIN games ON poems."gameId" = games."gameId"
+                                 WHERE games."isActive" IS TRUE`;
         const resCheckPoems = await db.query(queryCheckPoems);
 
         if (resCheckPoems.rows.length <= 0) {
