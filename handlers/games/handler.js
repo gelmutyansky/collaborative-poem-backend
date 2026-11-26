@@ -125,8 +125,8 @@ async function endGame() {
 /**
  * Получение статуса игры
  * @param { Object } cookies
- * @param { string? } cookies.gamerId
- * @returns { Promise<{ message: string | { game: { gameName: string, isFinished: boolean, poemLinePosition: number, hasPoems: boolean }, gamers: { gamerId: number, playerName: string, isPoemLineSubmitted: boolean }[] }, statusCode: number }>}
+ * @param { string? } cookies.playerId
+ * @returns { Promise<{ message: string | { game: { gameName: string, isFinished: boolean, poemLinePosition: number, hasPoems: boolean }, gamers: { gamerId: number, playerId: number, playerName: string, isPoemLineSubmitted: boolean }[] }, statusCode: number }>}
  * */
 async function getGameStatus({ cookies }) {
     let data = {
@@ -138,7 +138,7 @@ async function getGameStatus({ cookies }) {
 
     try {
         const {
-            gamerId,
+            playerId,
         } = cookies;
 
         const queryGame = `SELECT games."gameName"                  AS "gameName",
@@ -146,6 +146,7 @@ async function getGameStatus({ cookies }) {
                                   games."poemLinePosition"          AS "poemLinePosition",
                                   poems."poemId" IS NOT NULL        AS "hasPoems",
                                   gamers."gamerId"                  AS "gamerId",
+                                  players."playerId"                AS "playerId",
                                   players."playerName"              AS "playerName",
                                   poem_lines."poemLine" IS NOT NULL AS "isPoemLineSubmitted"
                            FROM games
@@ -175,13 +176,13 @@ async function getGameStatus({ cookies }) {
         } = resGame.rows[0];
 
         let gamers = resGame.rows;
-        if (gamerId) {
-            gamers = [ gamers.find(gamer => gamer.gamerId === +gamerId) ];
+        if (playerId) {
+            gamers = [ gamers.find(gamer => +gamer.playerId === +playerId) ];
         }
 
         data = {
             message:    {
-                game:    {
+                game:   {
                     gameName,
                     isFinished,
                     poemLinePosition,

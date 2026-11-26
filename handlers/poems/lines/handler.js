@@ -7,7 +7,7 @@ import { errorHandler } from '../../../helpers/functions.js';
  * @param { string } body.poemLine
  * @param { string } body.fontName
  * @param { Object } cookies
- * @param { string } cookies.gamerId
+ * @param { string } cookies.playerId
  * @returns { Promise<{ message: string, statusCode: number }>}
  * */
 async function submitPoemLine({ body, cookies }) {
@@ -25,7 +25,7 @@ async function submitPoemLine({ body, cookies }) {
         } = body;
 
         const {
-            gamerId,
+            playerId,
         } = cookies;
 
         const queryUpdatePoemLine = `UPDATE poem_lines
@@ -33,10 +33,12 @@ async function submitPoemLine({ body, cookies }) {
                                          "fontName"   = $3,
                                          "updateDate" = NOW()
                                      FROM games
-                                     WHERE poem_lines."gamerId" = $1
+                                              INNER JOIN gamers ON games."gameId" = gamers."gameId"
+                                     WHERE gamers."playerId" = $1
+                                       AND poem_lines."gamerId" = gamers."gamerId"
                                        AND poem_lines.position = games."poemLinePosition"
                                        AND poem_lines."poemLine" IS NULL`;
-        const paramsUpdatePoemLine = [ gamerId, poemLine, fontName ];
+        const paramsUpdatePoemLine = [ playerId, poemLine, fontName ];
         const resUpdatePoemLine = await db.query(queryUpdatePoemLine, paramsUpdatePoemLine);
 
         if (resUpdatePoemLine.rowCount <= 0) {
@@ -59,7 +61,7 @@ async function submitPoemLine({ body, cookies }) {
 /**
  * Отмена линии поэмы
  * @param { Object } cookies
- * @param { string } cookies.gamerId
+ * @param { string } cookies.playerId
  * @returns { Promise<{ message: string, statusCode: number }>}
  * */
 async function unsubmitPoemLine({ cookies }) {
@@ -72,7 +74,7 @@ async function unsubmitPoemLine({ cookies }) {
 
     try {
         const {
-            gamerId,
+            playerId,
         } = cookies;
 
         const queryUpdatePoemLine = `UPDATE poem_lines
@@ -80,11 +82,13 @@ async function unsubmitPoemLine({ cookies }) {
                                          "fontName"   = NULL,
                                          "updateDate" = NOW()
                                      FROM games
-                                     WHERE poem_lines."gamerId" = $1
+                                              INNER JOIN gamers ON games."gameId" = gamers."gameId"
+                                     WHERE gamers."playerId" = $1
+                                       AND poem_lines."gamerId" = gamers."gamerId"
                                        AND poem_lines.position = games."poemLinePosition"
                                        AND poem_lines."poemLine" IS NULL
                                        AND games."isFinished" IS FALSE`;
-        const paramsUpdatePoemLine = [ gamerId ];
+        const paramsUpdatePoemLine = [ playerId ];
         const resUpdatePoemLine = await db.query(queryUpdatePoemLine, paramsUpdatePoemLine);
 
         if (resUpdatePoemLine.rowCount <= 0) {
@@ -107,7 +111,7 @@ async function unsubmitPoemLine({ cookies }) {
 /**
  * Получение предыдущей строки поэмы
  * @param { Object } cookies
- * @param { string } cookies.gamerId
+ * @param { string } cookies.playerId
  * @returns { Promise<{ message: string | { poemLine: string, fontName: string }, statusCode: number }> }
  * */
 async function getPreviousPoemLine({ cookies }) {
@@ -120,22 +124,24 @@ async function getPreviousPoemLine({ cookies }) {
 
     try {
         const {
-            gamerId,
+            playerId,
         } = cookies;
 
         const queryPreviousLine = `SELECT poem_lines_previous."poemLine" AS "poemLine",
                                           poem_lines_previous."fontName" AS "fontName"
-                                   FROM games g
-                                            INNER JOIN poems ON g."gameId" = poems."poemId"
+                                   FROM games
+                                            INNER JOIN gamers ON games."gameId" = gamers."gameId"
+                                            INNER JOIN poems ON games."gameId" = poems."gameId"
                                             INNER JOIN poem_lines poem_lines_current
                                                        ON poems."poemId" = poem_lines_current."poemId" AND
-                                                          poem_lines_current.position = g."poemLinePosition"
+                                                          poem_lines_current.position = games."poemLinePosition"
                                             INNER JOIN poem_lines_current poem_lines_previous
                                                        ON poem_lines_current."poemId" = poem_lines_previous."poemId" AND
-                                                          poem_lines_current.position = g."poemLinePosition" - 1
-                                   WHERE g."isActive" IS TRUE
-                                     AND poem_lines_current."gamerId" = $1`;
-        const paramsPreviousLine = [ gamerId ];
+                                                          poem_lines_current.position = games."poemLinePosition" - 1
+                                   WHERE games."isActive" IS TRUE
+                                     AND gamers."playerId" = $1
+                                     AND poem_lines_current."gamerId" = gamers."gamerId"`;
+        const paramsPreviousLine = [ playerId ];
         const resPreviousLine = await db.query(queryPreviousLine, paramsPreviousLine);
 
         if (resPreviousLine.rows.length <= 0) {
@@ -158,7 +164,7 @@ async function getPreviousPoemLine({ cookies }) {
 /**
  * Получение цельной поэмы
  * @param { Object } cookies
- * @param { string } cookies.gamerId
+ * @param { string } cookies.playerId
  * @returns { Promise<{ message: string | { poemLine: string, position: number, fontName: string, playerName: string }[], statusCode: number }>}
  * */
 async function getAllPoemLines({ cookies }) {
@@ -171,7 +177,7 @@ async function getAllPoemLines({ cookies }) {
 
     try {
         const {
-            playerId: gamerId,
+            playerId,
         } = cookies;
 
         const queryLines = `SELECT poem_lines."poemLine" AS "poemLine",
@@ -179,15 +185,17 @@ async function getAllPoemLines({ cookies }) {
                                    poem_lines."fontName" AS "fontName",
                                    players."playerName"  AS "playerName"
                             FROM games
+                                     INNER JOIN gamers ON games."gameId" = gamers."gameId"
                                      INNER JOIN poems ON games."gameId" = poems."poemId"
                                      INNER JOIN poem_lines on poems."poemId" = poem_lines."poemId"
                                      INNER JOIN gamers ON poem_lines."gamerId" = gamers."gamerId"
                                      INNER JOIN players ON gamers."playerId" = players."playerId"
                             WHERE games."isActive" IS TRUE
                               AND poems."isReadable" IS TRUE
-                              AND poems."gamerIdCreator" = $1
+                              AND gamers."playerId" = $1
+                              AND poems."gamerIdCreator" = gamers."gamerId"
                             ORDER BY poem_lines.position`;
-        const paramsLines = [ gamerId ];
+        const paramsLines = [ playerId ];
         const resLines = await db.query(queryLines, paramsLines);
 
         if (resLines.rows.length <= 0) {
