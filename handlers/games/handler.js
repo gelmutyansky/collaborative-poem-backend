@@ -5,6 +5,7 @@ import { errorHandler } from '../../helpers/functions.js';
  * Начало игры
  * @param { Object } body
  * @param { string } body.gameName
+ * @param { number[] } body.playerIds
  * @returns { Promise<{ message: string, statusCode: number }>}
  * */
 async function startGame({ body }) {
@@ -14,12 +15,14 @@ async function startGame({ body }) {
     };
 
     const funcName = startGame.name;
+    const client = await db.getClient();
+    let hasTransaction = false;
 
     try {
         const queryCheckExistingGame = `SELECT
                                         FROM games
                                         WHERE "isActive" IS TRUE`;
-        const resCheckExistingGame = await db.query(queryCheckExistingGame);
+        const resCheckExistingGame = await client.query(queryCheckExistingGame);
 
         if (resCheckExistingGame.rows.length > 0) {
             data = {
@@ -31,16 +34,38 @@ async function startGame({ body }) {
 
         const {
             gameName,
+            playerIds,
         } = body;
 
-        const queryInsertGame = `INSERT INTO games ("gameName", "isActive")
-                                 VALUES ($1, TRUE)`;
-        const resInsertGame = await db.query(queryInsertGame, [ gameName ]);
+        await client.query('BEGIN');
+        hasTransaction = true;
 
-        if (resInsertGame.rowCount <= 0) {
+        const queryInsertGame = `INSERT INTO games ("gameName", "isActive")
+                                 VALUES ($1, TRUE)
+                                 RETURNING "gameId"`;
+        const resInsertGame = await client.query(queryInsertGame, [ gameName ]);
+
+        if (resInsertGame.rowCount !== 1 || resInsertGame.rows.length !== 1) {
             console.error(`${ funcName }: Игра не добавлена (gameName: ${ gameName })`);
             return data;
         }
+
+        const { gameId } = resInsertGame.rows[0];
+
+        const queryInsertGamers = `INSERT INTO gamers ("gameId", "playerId")
+                                   VALUES (${ playerIds
+                                       .map((playerId, index) => `$1, $${ index + 2 }`)
+                                       .join('), (') })`;
+        const paramsInsertGamers = [ gameId, ...playerIds ];
+        const resInsertGamers = await client.query(queryInsertGamers, paramsInsertGamers);
+
+        if (resInsertGamers.rowCount !== playerIds.length) {
+            console.error(`${ funcName }: Не добавлены игроки (paramsInsertGamers: ${ JSON.stringify(paramsInsertGamers) }, resInsertGamers.rowCount: ${ resInsertGamers.rowCount }, playerIds.length: ${ playerIds.length })`);
+            return data;
+        }
+
+        await client.query('COMMIT');
+        hasTransaction = false;
 
         data = {
             message:    'success',
@@ -49,6 +74,13 @@ async function startGame({ body }) {
     }
     catch (e) {
         data = errorHandler(e, funcName);
+    }
+    finally {
+        if (hasTransaction) {
+            await client.query('ROLLBACK');
+        }
+
+        client.release();
     }
 
     return data;

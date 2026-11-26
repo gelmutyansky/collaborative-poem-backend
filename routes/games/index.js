@@ -11,12 +11,20 @@ export default async function(fastify) {
                 body:     {
                     type:       'object',
                     properties: {
-                        gameName: {
+                        gameName:  {
                             type:      'string',
                             minLength: 1,
                         },
+                        playerIds: {
+                            type:     'array',
+                            items:    { type: 'number' },
+                            minItems: 1,
+                        },
                     },
-                    required:   [ 'gameName' ],
+                    required:   [
+                        'gameName',
+                        'playerIds',
+                    ],
                 },
                 response: {
                     default: {
