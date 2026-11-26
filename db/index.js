@@ -6,6 +6,9 @@ export const query = async (text, params) => {
     return await pool.query(text, params)
 }
 
+/**
+ * @returns { Promise<PoolClient> }
+ * */
 export const getClient = async () => {
     const client = await pool.connect()
     const query = client.query
